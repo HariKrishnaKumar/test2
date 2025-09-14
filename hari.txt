@@ -1,0 +1,3 @@
+no need of 2 following view in api:
+GET /users/users 
+POST /users/users 
