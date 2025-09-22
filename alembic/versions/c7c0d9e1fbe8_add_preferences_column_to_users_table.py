@@ -1,7 +1,7 @@
 """add preferences column to users table
 
 Revision ID: c7c0d9e1fbe8
-Revises: 5629169ee608 
+Revises: 81431b1ca867 
 Create Date: <Your Creation Date>
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'c7c0d9e1fbe8'
-down_revision: Union[str, None] = '5629169ee608'
+down_revision: Union[str, None] = '81431b1ca867'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

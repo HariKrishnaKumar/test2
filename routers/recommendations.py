@@ -66,6 +66,10 @@ from sqlalchemy.orm import Session
 from database.database import get_db
 import models.recommendations as models
 import schemas.recommendations as schemas
+from models import user as user_model
+from models import recommendations as recommendation_model
+from schemas import recommendations as recommendation_schema
+
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
 
@@ -82,3 +86,24 @@ def create_recommendation(rec: schemas.RecommendationCreate, db: Session = Depen
 @router.get("/", response_model=list[schemas.RecommendationResponse])
 def get_recommendations(db: Session = Depends(get_db)):
     return db.query(models.Recommendation).all()
+
+@router.put("/{user_id}/recommendations/", response_model=recommendation_schema.Recommendation)
+def update_user_recommendations(user_id: int, recommendation: recommendation_schema.RecommendationUpdate, db: Session = Depends(get_db)):
+    db_user = db.query(user_model.User).filter(user_model.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_recommendation = db.query(recommendation_model.Recommendation).filter(recommendation_model.Recommendation.user_id == user_id).first()
+
+    if db_recommendation:
+        db_recommendation.item_id = recommendation.item_id
+        db.commit()
+        db.refresh(db_recommendation)
+        return db_recommendation
+    else:
+        # If no recommendation exists, create a new one
+        new_recommendation = recommendation_model.Recommendation(user_id=user_id, item_id=recommendation.item_id)
+        db.add(new_recommendation)
+        db.commit()
+        db.refresh(new_recommendation)
+        return new_recommendation

@@ -23,9 +23,9 @@ class Recommendation(Base):
     __tablename__ = "recommendations"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    mobile_number = Column(String(20), nullable=False)
-    item_id = Column(String(100), nullable=False)
-    item_name = Column(String(255), nullable=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    item_id = Column(String(255), nullable=False)
+    # mobile_number = Column(String(15), nullable=True)
+    # item_name = Column(String(255), nullable=True)
 
     user = relationship("User", back_populates="recommendations")

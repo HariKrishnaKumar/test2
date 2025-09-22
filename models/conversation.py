@@ -1,5 +1,4 @@
 from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey, Boolean
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from pydantic import BaseModel
@@ -7,29 +6,13 @@ from datetime import datetime
 from typing import Optional, List
 from database.database import Base
 
-# Base = declarative_base()
-
-# SQLAlchemy Models
-# class User(Base):
-#     __tablename__ = "users"
-
-#     id = Column(String(100), primary_key=True)  # mobile number or device ID
-#     is_guest = Column(Boolean, default=True)
-#     device_info = Column(String(255), nullable=True)
-#     created_at = Column(DateTime, default=func.now())
-
-#     # Relationships
-#     sessions = relationship("Session", back_populates="user")
-#     conversation_entries = relationship("ConversationEntry", back_populates="user")
-
-
 class Session(Base):
     __tablename__ = 'sessions'
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="sessions")
+    user = relationship("models.user.User", back_populates="sessions")
     conversation_entries = relationship("ConversationEntry", back_populates="session")
 
 class QuestionMaster(Base):
@@ -46,7 +29,6 @@ class QuestionMaster(Base):
 
     translations = relationship("QuestionTranslation", back_populates="question_master")
     answers = relationship("AnswerMaster", back_populates="question_master")
-    # This relationship is now correctly defined with the foreign key below
     conversation_entries = relationship("ConversationEntry", back_populates="question_master")
 
 
@@ -99,13 +81,11 @@ class ConversationEntry(Base):
     response = Column(String(1000))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # This is the required ForeignKey to link a conversation entry to a question and answer
     question_key = Column(String(100), ForeignKey("question_masters.question_key"))
     answer_key = Column(String(100), ForeignKey("answer_masters.answer_key"))
 
-    # Relationships back to the parent tables
     session = relationship("Session", back_populates="conversation_entries")
-    user = relationship("User", back_populates="conversation_entries")
+    user = relationship("models.user.User", back_populates="conversation_entries")
     question_master = relationship("QuestionMaster", back_populates="conversation_entries")
     answer_master = relationship("AnswerMaster", back_populates="conversation_entries")
 

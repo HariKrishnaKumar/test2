@@ -22,9 +22,9 @@ def upgrade():
         'recommendations',
         sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
         sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id'), nullable=False),
-        sa.Column('mobile_number', sa.String(length=20), nullable=False),
+        # sa.Column('mobile_number', sa.String(length=20), nullable=False),
         sa.Column('item_id', sa.String(length=100), nullable=False),
-        sa.Column('item_name', sa.String(length=255), nullable=True),
+        # sa.Column('item_name', sa.String(length=255), nullable=True),
     )
     # ✅ Removed the op.drop_index(...) that was causing issues
 

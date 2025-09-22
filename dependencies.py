@@ -1,8 +1,10 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from database.database import get_db
 from models.user import User
+from models.merchant_token import MerchantToken
+
 # import jwt
 from typing import Optional
 
@@ -74,3 +76,21 @@ def get_current_user_simple(db: Session = Depends(get_db)) -> User:
             detail="No user found"
         )
     return user
+
+def get_clover_token(
+    merchant_id: str = Path(...),
+    db: Session = Depends(get_db)
+) -> str:
+    """
+    Dependency to fetch the latest Clover access token for a merchant from the database.
+    """
+    token_record = db.query(MerchantToken).filter(
+        MerchantToken.merchant_id == merchant_id
+    ).order_by(MerchantToken.created_at.desc()).first()
+
+    if not token_record or not token_record.token:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No valid Clover API token found for merchant ID: {merchant_id}"
+        )
+    return token_record.token
