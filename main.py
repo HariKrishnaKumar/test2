@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Query, HTTPException, Path, Header, Depends
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -16,15 +15,15 @@ from datetime import datetime
 import httpx
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from database.database import get_db, Base, engine 
+from database.database import get_db, Base, engine
 from helpers.merchant_helper import MerchantHelper
 from models.merchant_token import MerchantToken
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import question_master
 from routers.router import api_router
 from routers import users, pizzas, ai, auth, recommendations
-from routers import recommendations, users   
-from app.routes import merchants    
+from routers import recommendations, users
+from app.routes import merchants
 
 
 from utils.merchant_extractor import (

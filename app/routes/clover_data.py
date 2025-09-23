@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Path
 from sqlalchemy.orm import Session
 import os
 import httpx
@@ -7,7 +7,7 @@ from helpers.merchant_helper import MerchantHelper
 from typing import Optional,Dict, Any
 from models.merchant_detail import MerchantDetail
 
-router = APIRouter(prefix="/clover/catalog", tags=["Clover Catalog"])
+router = APIRouter(prefix="/api/clover", tags=["Clover Items"])
 
 CLOVER_BASE_URL = os.getenv("CLOVER_BASE_URL", "https://apisandbox.dev.clover.com")
 
@@ -17,6 +17,54 @@ def _build_headers(access_token: str):
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
     }
+
+@router.get("/items/{merchant_id}")
+async def get_all_items_with_variations(
+    merchant_id: str = Path(..., description="Clover merchant ID"),
+    db: Session = Depends(get_db),
+):
+    """
+    Get all items with their variations for a specific merchant.
+    """
+    access_token = MerchantHelper.get_merchant_token(db, merchant_id)
+    if not access_token:
+        raise HTTPException(status_code=404, detail="Merchant token not found. Add the merchant first.")
+
+    url = f"{CLOVER_BASE_URL}/v3/merchants/{merchant_id}/items"
+    params = {"expand": "variants"} 
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=_build_headers(access_token), params=params)
+            response.raise_for_status()
+            clover_items = response.json().get("elements", [])
+
+            formatted_items = []
+            for item in clover_items:
+                variations = []
+                if "variants" in item and "elements" in item["variants"]:
+                    for variant in item["variants"]["elements"]:
+                        variations.append({
+                            "id": variant.get("id"),
+                            "name": variant.get("name"),
+                            "price": variant.get("price"),
+                        })
+
+                formatted_items.append({
+                    "id": item.get("id"),
+                    "name": item.get("name"),
+                    "price": item.get("price"),
+                    "variations": variations,
+                })
+
+            return {"merchant_id": merchant_id, "items": formatted_items}
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                raise HTTPException(status_code=401, detail="Invalid or expired Clover token.")
+            raise HTTPException(status_code=e.response.status_code, detail=f"Clover API error: {e.response.text}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 
 @router.get("/items")
